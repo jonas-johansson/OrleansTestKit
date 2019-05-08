@@ -8,11 +8,11 @@
 
         public int Reads { get; internal set; }
 
-        public void ResetCounts()
-        {
-            Writes = 0;
-            Reads = 0;
-            Clears = 0;
-        }
+        //public void ResetCounts()
+        //{
+        //    Writes = 0;
+        //    Reads = 0;
+        //    Clears = 0;
+        //}
     }
 }

@@ -4,7 +4,12 @@ using TestInterfaces;
 
 namespace TestGrains
 {
-    public class PingGrain : Grain, IPing
+    public class PingState
+    {
+        public int Value { get; private set; }
+    }
+
+    public class PingGrain : Grain<PingState>, IPing
     {
         public Task Ping()
         {

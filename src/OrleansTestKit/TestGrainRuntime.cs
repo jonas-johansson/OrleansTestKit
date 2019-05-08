@@ -57,6 +57,6 @@ namespace Orleans.TestKit
         }
 
         public IStorage<TGrainState> GetStorage<TGrainState>(Grain grain) where TGrainState : new() =>
-            _storageManager.GetStorage<TGrainState>();
+            _storageManager.GetStorage<TGrainState>(grain);
     }
 }

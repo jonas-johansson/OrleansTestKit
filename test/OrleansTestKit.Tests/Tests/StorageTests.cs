@@ -47,7 +47,7 @@ namespace Orleans.TestKit.Tests
 
             greetings.Should().Contain(greeting);
 
-            Silo.StorageStats().ResetCounts();
+            Silo.StorageManager.ResetCounts();
 
             Silo.StorageStats().Writes.Should().Be(0);
         }

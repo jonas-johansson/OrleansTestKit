@@ -12,8 +12,11 @@ namespace Orleans.TestKit
         private readonly TestKitOptions _options;
 
         private readonly Dictionary<string, IGrain> _probes = new Dictionary<string, IGrain>();
+        private readonly Dictionary<string, IGrain> _grains = new Dictionary<string, IGrain>();
 
         private readonly Dictionary<Type, Func<IGrainIdentity, IMock<IGrain>>> _probeFactories = new Dictionary<Type, Func<IGrainIdentity, IMock<IGrain>>>();
+
+        public TestKitSilo TestKitSilo { get; internal set; }
 
         internal TestGrainFactory(TestKitOptions options)
         {
@@ -29,6 +32,8 @@ namespace Orleans.TestKit
         public TGrainInterface GetGrain<TGrainInterface>(long primaryKey, string grainClassNamePrefix = null)
             where TGrainInterface : IGrainWithIntegerKey
         {
+            TestKitSilo.CreateGrainFromInterfaceAsync<TGrainInterface>(new TestGrainIdentity(primaryKey));
+
             return GetProbe<TGrainInterface>(new TestGrainIdentity(primaryKey), grainClassNamePrefix);
         }
 
@@ -75,6 +80,9 @@ namespace Orleans.TestKit
             var key = GetKey(identity, typeof(T), grainClassNamePrefix);
 
             IGrain grain;
+
+            if (_grains.TryGetValue(key, out grain))
+                return (T)grain;
 
             if (_probes.TryGetValue(key, out grain))
                 return (T)grain;
@@ -126,6 +134,12 @@ namespace Orleans.TestKit
         public void BindGrainReference(IAddressable grain)
         {
             throw new NotImplementedException();
+        }
+
+        public void AddGrain<TGrain, TInterface>(IGrainIdentity identity, TGrain grain) where TGrain : class, IGrain
+        {
+            var key = GetKey(identity, typeof(TInterface));
+            _grains.Add(key, grain);
         }
     }
 }

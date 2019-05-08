@@ -10,9 +10,9 @@ namespace Orleans.TestKit
             silo.StorageManager.GetStorageStats();
 
         public static TState State<TState>(this TestKitSilo silo, Grain<TState> grain) where TState : class, new() =>
-            silo.StorageManager.GetStorage<TState>().State;
+            silo.StorageManager.GetStorage<TState>(grain).State;
 
-        public static TState State<TState>(this TestKitSilo silo) where TState : class, new() =>
-            silo.StorageManager.GetStorage<TState>().State;
+        //public static TState State<TState>(this TestKitSilo silo) where TState : class, new() =>
+        //    silo.StorageManager.GetStorage<TState>().State;
     }
 }

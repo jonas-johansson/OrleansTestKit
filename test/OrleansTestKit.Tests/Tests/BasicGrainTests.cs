@@ -25,6 +25,14 @@ namespace Orleans.TestKit.Tests
         }
 
         [Fact]
+        public void GetGrainGivesImplementation()
+        {
+            var grain = Silo.GrainFactory.GetGrain<IPing>(80L);
+
+            grain.GetType().Should().Be(typeof(PingGrain));
+        }
+
+        [Fact]
         public async Task GrainActivation()
         {
             var grain = await Silo.CreateGrainAsync<LifecycleGrain>(new Random().Next());
@@ -33,12 +41,13 @@ namespace Orleans.TestKit.Tests
         }
 
         [Fact]
-        public async Task SecondGrainCreated()
+        public async Task GrainActivationMultipleGrains()
         {
-            await Silo.CreateGrainAsync<LifecycleGrain>(new Random().Next());
+            var grainA = await Silo.CreateGrainAsync<LifecycleGrain>(new Random().Next());
+            var grainB = await Silo.CreateGrainAsync<LifecycleGrain>(new Random().Next());
 
-            Func<Task> creatingSecondGrainAsync = async () => await Silo.CreateGrainAsync<LifecycleGrain>(new Random().Next());
-            creatingSecondGrainAsync.Should().Throw<Exception>();
+            grainA.ActivateCount.Should().Be(1);
+            grainB.ActivateCount.Should().Be(1);
         }
 
         [Fact]
@@ -51,6 +60,39 @@ namespace Orleans.TestKit.Tests
             await Silo.DeactivateAsync(grain);
 
             grain.DeactivateCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GrainDeactivationMultipleGrains()
+        {
+            var grainA = await Silo.CreateGrainAsync<LifecycleGrain>(new Random().Next());
+            var grainB = await Silo.CreateGrainAsync<LifecycleGrain>(new Random().Next());
+
+            grainA.DeactivateCount.Should().Be(0);
+            grainB.DeactivateCount.Should().Be(0);
+
+            await Silo.DeactivateAsync(grainA);
+
+            grainA.DeactivateCount.Should().Be(1);
+            grainB.DeactivateCount.Should().Be(0);
+
+            await Silo.DeactivateAsync(grainB);
+
+            grainA.DeactivateCount.Should().Be(1);
+            grainB.DeactivateCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GrainsCanCallEachOther()
+        {
+            var pingGrain = await Silo.CreateGrainAsync<PingGrain, IPing>(new Random().Next());
+            var pongGrain = await Silo.CreateGrainAsync<PongGrain, IPong>(22L);
+
+            pongGrain.PongWasCalled.Should().BeFalse();
+
+            await pingGrain.Ping();
+
+            pongGrain.PongWasCalled.Should().BeTrue();
         }
 
         [Fact]
