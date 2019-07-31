@@ -1,9 +1,11 @@
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 artifacts:
   - path: artifacts\*.nupkg
+    name: NuGet Packages
     type: NuGetPackage
   - path: artifacts\*.snupkg
+    name: NuGet Symbol Packages
     type: NuGetPackage
 branches:
   only:
@@ -23,7 +25,7 @@ before_build:
   - cmd: dotnet --version
   - cmd: appveyor-retry dotnet restore --force --packages "%appveyor_build_folder%\packages" --verbosity minimal
 build_script:
-  - cmd: dotnet build --configuration Release --no-restore --verbosity minimal -l:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.V14.dll"
+  - cmd: dotnet build --configuration Release --no-restore --verbosity minimal -l:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.V14.dll" /p:TreatWarningsAsErrors=true /warnaserror
 after_build:
   - cmd: dotnet pack --configuration Release --no-build --no-restore --output "%appveyor_build_folder%\artifacts" --verbosity minimal
 test_script:
@@ -36,14 +38,12 @@ deploy:
     auth_token:
       secure: Jvffsb67YYmAVuPQk1g6sfqmJto+zoI9C9hGT9rfOM3M8SQatJUQupX7TXjC9GTV
     tag: $(appveyor_repo_tag_name)
-    artifact: /.*\.s?nupkg/
     description: Release Notes
     on:
       appveyor_repo_tag: true
   - provider: NuGet
+    server: https://api.nuget.org/v3/index.json
     api_key:
       secure: DWUE24PKEGW0giJPUGZY76rVzFo5MgosfRR0IPMSIuXZlruaEFwC97g5iKJ7MU4E
-    # Find a fix for pushing snupkg to NuGet from AppVeyor! Then, change the following pattern to: /.*\.s?nupkg/
-    artifact: /.*\.nupkg/
     on:
       appveyor_repo_tag: true
